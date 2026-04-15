@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bond Portfolio</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #1e2a38, #2f3e52);
+      color: #fff;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: auto;
+    }
+
+    .bond {
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 15px 20px;
+      margin-bottom: 15px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+
+    .bond:hover {
+      transform: scale(1.02);
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    .details {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease;
+      margin-top: 10px;
+    }
+
+    .bond.active .details {
+      max-height: 400px;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      margin: 8px 0;
+      font-size: 14px;
+    }
+
+    .label {
+      color: #bbb;
+    }
+
+    .value {
+      font-weight: 500;
+    }
+
+    .highlight {
+      border-top: 1px solid rgba(255,255,255,0.2);
+      margin-top: 10px;
+      padding-top: 10px;
+    }
+
+    .big {
+      color: #4fd1c5;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Bond #1 -->
+  <div class="bond" onclick="toggleBond(this)">
+    <div class="header">
+      <span>Bond #1</span>
+      <span>₹ 5,000</span>
+    </div>
+
+    <div class="details" id="bond1"></div>
+  </div>
+
+  <!-- Bond #2 -->
+  <div class="bond" onclick="toggleBond(this)">
+    <div class="header">
+      <span>Bond #2</span>
+      <span>₹ 20,000</span>
+    </div>
+
+    <div class="details" id="bond2"></div>
+  </div>
+
+</div>
+
+<script>
+  function toggleBond(element) {
+    element.classList.toggle("active");
+  }
+
+  function formatDate(date) {
+    return date.toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric"
+    });
+  }
+
+  function generateBondHTML(principal, rate, startDateStr, liquidityDays) {
+    const startDate = new Date(startDateStr);
+    const maturityDate = new Date(startDate);
+    maturityDate.setDate(maturityDate.getDate() + 365);
+
+    const today = new Date();
+    const diffTime = today - startDate;
+    const days = diffTime / (1000 * 60 * 60 * 24);
+
+    const interest = (principal * rate * days) / (100 * 365);
+    const total = principal + interest;
+
+    return `
+      <div class="row">
+        <div class="label">Coupon Rate</div>
+        <div class="value">${rate}%</div>
+      </div>
+      <div class="row">
+        <div class="label">Investment Date</div>
+        <div class="value">${formatDate(startDate)}</div>
+      </div>
+      <div class="row">
+        <div class="label">Maturity Date</div>
+        <div class="value">${formatDate(maturityDate)}</div>
+      </div>
+      <div class="row">
+        <div class="label">Liquidity</div>
+        <div class="value">${liquidityDays} days</div>
+      </div>
+
+      <div class="highlight">
+        <div class="row">
+          <div class="label">Interest Accrued</div>
+          <div class="value big">₹ ${interest.toFixed(2)}</div>
+        </div>
+        <div class="row">
+          <div class="label">Current Value</div>
+          <div class="value big">₹ ${total.toFixed(2)}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Inject bond data
+  document.getElementById("bond1").innerHTML =
+    generateBondHTML(5000, 6.01, "2026-04-05", 2);
+
+  document.getElementById("bond2").innerHTML =
+    generateBondHTML(20000, 7, "2025-05-27", 30);
+
+</script>
+
+</body>
+</html>
