@@ -4,167 +4,143 @@
   <meta charset="UTF-8">
   <title>Bond Portfolio</title>
   <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #1e2a38, #2f3e52);
-      color: #fff;
-      padding: 40px 20px;
-    }
-
-    .container {
-      max-width: 500px;
-      margin: auto;
-    }
-
-    .bond {
-      background: rgba(255,255,255,0.08);
-      backdrop-filter: blur(10px);
-      border-radius: 15px;
-      padding: 15px 20px;
-      margin-bottom: 15px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-    }
-
-    .bond:hover {
-      transform: scale(1.02);
-    }
-
-    .header {
-      display: flex;
-      justify-content: space-between;
-      font-weight: 600;
-      font-size: 16px;
-    }
-
-    .details {
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.4s ease;
-      margin-top: 10px;
-    }
-
-    .bond.active .details {
-      max-height: 400px;
-    }
-
-    .row {
-      display: flex;
-      justify-content: space-between;
-      margin: 8px 0;
-      font-size: 14px;
-    }
-
-    .label {
-      color: #bbb;
-    }
-
-    .value {
-      font-weight: 500;
-    }
-
-    .highlight {
-      border-top: 1px solid rgba(255,255,255,0.2);
-      margin-top: 10px;
-      padding-top: 10px;
-    }
-
-    .big {
-      color: #4fd1c5;
-      font-weight: bold;
-    }
+    body { margin:0; font-family:'Segoe UI',sans-serif; background:linear-gradient(135deg,#1e2a38,#2f3e52); color:#fff; padding:40px 20px; }
+    .container { max-width:500px; margin:auto; }
+    .bond { background:rgba(255,255,255,0.08); backdrop-filter:blur(10px); border-radius:15px; padding:15px 20px; margin-bottom:15px; cursor:pointer; transition:0.3s; box-shadow:0 6px 20px rgba(0,0,0,0.3); }
+    .bond:hover { transform:scale(1.02); }
+    .header { display:flex; justify-content:space-between; font-weight:600; }
+    .details { max-height:0; overflow:hidden; transition:0.4s; }
+    .bond.active .details { max-height:520px; }
+    .row { display:flex; justify-content:space-between; margin:8px 0; font-size:14px; }
+    .label { color:#bbb; }
+    .big { color:#4fd1c5; font-weight:bold; transition:0.15s; }
+    .pulse { transform:scale(1.05); color:#22c55e !important; }
+    .rate,.today { font-size:12px; text-align:right; }
+    .maturity-box { margin-top:10px; padding:8px; border-radius:8px; background:rgba(255,215,0,0.1); color:#ffd166; font-size:13px; text-align:center; font-weight:500; }
+    .summary-card { display:flex; justify-content:space-between; margin-top:10px; }
+    .summary-item { flex:1; padding:10px; border-radius:10px; margin:0 4px; text-align:center; }
+    .invested { background:rgba(59,130,246,0.2); }
+    .value { background:rgba(16,185,129,0.2); }
+    .gain { background:rgba(34,197,94,0.25); }
+    .rate { color:#9ae6b4; }
+    .today { color:#90cdf4; }
   </style>
 </head>
 <body>
 
 <div class="container">
 
-  <!-- Bond #1 -->
-  <div class="bond" onclick="toggleBond(this)">
-    <div class="header">
-      <span>Bond #1</span>
-      <span>₹ 5,000</span>
+  <div id="portfolio-summary" style="margin-bottom:20px; padding:15px; border-radius:12px; background:rgba(255,255,255,0.06); box-shadow:0 4px 15px rgba(0,0,0,0.25);">
+    <div style="font-size:18px; font-weight:bold; text-align:center;">Portfolio Summary</div>
+    <div class="summary-card">
+      <div class="summary-item invested" id="sum-invested"></div>
+      <div class="summary-item value" id="sum-value"></div>
+      <div class="summary-item gain" id="sum-gain"></div>
     </div>
-
+  </div>
+    <div id="summary-values" style="margin-top:8px; font-weight:500;"></div>
+  </div>
+  <div class="bond" onclick="toggleBond(this)">
+    <div class="header"><span>Bond #1</span><span>₹ 5,000</span></div>
     <div class="details" id="bond1"></div>
   </div>
 
-  <!-- Bond #2 -->
   <div class="bond" onclick="toggleBond(this)">
-    <div class="header">
-      <span>Bond #2</span>
-      <span>₹ 20,000</span>
-    </div>
-
+    <div class="header"><span>Bond #2</span><span>₹ 20,000</span></div>
     <div class="details" id="bond2"></div>
   </div>
-
 </div>
 
 <script>
-  function toggleBond(element) {
-    element.classList.toggle("active");
-  }
+function toggleBond(el){ el.classList.toggle("active"); }
 
-  function formatDate(date) {
-    return date.toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric"
-    });
-  }
+function formatDate(d){ return d.toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"}); }
 
-  function generateBondHTML(principal, rate, startDateStr, liquidityDays) {
-    const startDate = new Date(startDateStr);
-    const maturityDate = new Date(startDate);
-    maturityDate.setDate(maturityDate.getDate() + 365);
+function calculateInterest(p,r,start){ return (p*r*(Date.now()-start)/(100*365*24*3600*1000)); }
 
-    const today = new Date();
-    const diffTime = today - startDate;
-    const days = diffTime / (1000 * 60 * 60 * 24);
+function perHour(p,r){ return (p*r)/(100*365*24); }
+function perDay(p,r){ return (p*r)/(100*365); }
 
-    const interest = (principal * rate * days) / (100 * 365);
-    const total = principal + interest;
+function startOfToday(){ const n=new Date(); return new Date(n.getFullYear(),n.getMonth(),n.getDate()); }
 
-    return `
-      <div class="row">
-        <div class="label">Coupon Rate</div>
-        <div class="value">${rate}%</div>
+function formatINR(num){
+  return num.toLocaleString("en-IN", {maximumFractionDigits:2});
+}
+
+function render(id,p,r,startStr,liq){
+  const start=new Date(startStr);
+  const mat=new Date(start); mat.setDate(mat.getDate()+365);
+
+  document.getElementById(id).innerHTML=`
+    <div class="row"><div class="label">Coupon</div><div>${r}%</div></div>
+    <div class="row"><div class="label">Start</div><div>${formatDate(start)}</div></div>
+    <div class="row"><div class="label">Maturity</div><div>${formatDate(mat)}</div></div>
+    <div class="row"><div class="label">Liquidity</div><div>${liq} days</div></div>
+
+    <div class="row"><div class="label">Interest</div>
+      <div>
+        <div class="big" id="${id}-i"></div>
+        <div class="rate" id="${id}-rate"></div>
+        <div class="today" id="${id}-today"></div>
+        
       </div>
-      <div class="row">
-        <div class="label">Investment Date</div>
-        <div class="value">${formatDate(startDate)}</div>
-      </div>
-      <div class="row">
-        <div class="label">Maturity Date</div>
-        <div class="value">${formatDate(maturityDate)}</div>
-      </div>
-      <div class="row">
-        <div class="label">Liquidity</div>
-        <div class="value">${liquidityDays} days</div>
-      </div>
+    </div>
 
-      <div class="highlight">
-        <div class="row">
-          <div class="label">Interest Accrued</div>
-          <div class="value big">₹ ${interest.toFixed(2)}</div>
-        </div>
-        <div class="row">
-          <div class="label">Current Value</div>
-          <div class="value big">₹ ${total.toFixed(2)}</div>
-        </div>
-      </div>
-    `;
-  }
+    <div class="row"><div class="label">Value</div><div class="big" id="${id}-t"></div></div>
 
-  // Inject bond data
-  document.getElementById("bond1").innerHTML =
-    generateBondHTML(5000, 6.01, "2026-04-05", 2);
+    <div class="maturity-box" id="${id}-maturity"></div>
+  `;
 
-  document.getElementById("bond2").innerHTML =
-    generateBondHTML(20000, 7, "2025-05-27", 30);
+  return {p,r,start,mat};
+}
+
+const b1=render("bond1",5000,6.01,"2026-04-05",2);
+const b2=render("bond2",20000,7,"2025-05-27",30);
+
+function animate(){
+  const today=startOfToday();
+
+  let totalPrincipal = 0;
+  let totalValue = 0;
+
+  [
+    {d:b1,id:"bond1"},
+    {d:b2,id:"bond2"}
+  ].forEach(b=>{
+    const i=calculateInterest(b.d.p,b.d.r,b.d.start);
+    const t=b.d.p+i;
+
+    totalPrincipal += b.d.p;
+    totalValue += t;
+
+    const rateHr=perHour(b.d.p,b.d.r);
+    const rateDay=perDay(b.d.p,b.d.r);
+
+    const rateText = rateHr>0.1 ? `+₹ ${rateHr.toFixed(3)} / hr` : `+₹ ${rateDay.toFixed(2)} / day`;
+
+    const todayEarn=calculateInterest(b.d.p,b.d.r,today);
+
+    const daysLeft = Math.max(0, Math.floor((b.d.mat - Date.now())/(1000*60*60*24)));
+
+    const el=document.getElementById(`${b.id}-i`);
+    el.classList.add("pulse");
+    setTimeout(()=>el.classList.remove("pulse"),100);
+
+    el.innerText=`₹ ${i.toFixed(2)}`;
+    document.getElementById(`${b.id}-t`).innerText=`₹ ${t.toFixed(2)}`;
+    document.getElementById(`${b.id}-rate`).innerText=rateText;
+    document.getElementById(`${b.id}-today`).innerText=`Today: ₹ ${todayEarn.toFixed(2)}`;
+    document.getElementById(`${b.id}-maturity`).innerText=`Matures in: ${daysLeft} days`;
+  });
+
+  const gain = totalValue - totalPrincipal;
+  document.getElementById("sum-invested").innerText = `Invested\n₹ ${formatINR(totalPrincipal)}`;
+  document.getElementById("sum-value").innerText = `Current Value\n₹ ${formatINR(totalValue)}`;
+  document.getElementById("sum-gain").innerText = `Gains\n+₹ ${formatINR(gain)}`;
+
+  requestAnimationFrame(animate);
+}
+animate();
 
 </script>
 
