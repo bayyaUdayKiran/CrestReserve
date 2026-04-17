@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "principal": 8219.6,
+    "coupon": 6,
+    "investmentDate": "2026-04-17",
+    "tenureMonths": 12,
+    "liquidity": "1 day"
+  },
+  {
+    "id": 2,
+    "principal": 10819.6,
+    "coupon": 7,
+    "investmentDate": "2026-04-17",
+    "tenureMonths": 12,
+    "liquidity": "30 days"
+  },
+  {
+    "id": 3,
+    "principal": 8219.6,
+    "coupon": 9,
+    "investmentDate": "2026-04-17",
+    "tenureMonths": 18,
+    "liquidity": "∞"
+  }
+]
