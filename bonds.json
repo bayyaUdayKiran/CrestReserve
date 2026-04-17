@@ -1,7 +1,7 @@
 [
   {
     "id": 1,
-    "principal": 8219.6,
+    "principal": 7820.3,
     "coupon": 6,
     "investmentDate": "2026-04-17",
     "tenureMonths": 12,
@@ -9,7 +9,7 @@
   },
   {
     "id": 2,
-    "principal": 10819.6,
+    "principal": 10420.6,
     "coupon": 7,
     "investmentDate": "2026-04-17",
     "tenureMonths": 12,
@@ -17,7 +17,7 @@
   },
   {
     "id": 3,
-    "principal": 8219.6,
+    "principal": 7820.6,
     "coupon": 9,
     "investmentDate": "2026-04-17",
     "tenureMonths": 18,
