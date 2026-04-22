@@ -35,38 +35,55 @@ body {
   border-radius:12px;
   background:rgba(255,255,255,0.06);
 }
-.summary-card { display:flex; }
+.summary-card {
+  display:flex;
+  flex-wrap:wrap;
+}
 .summary-item {
   flex:1;
   margin:4px;
   padding:10px;
   border-radius:10px;
   text-align:center;
+  min-width:100px;
 }
 .invested { background:rgba(59,130,246,0.2); }
 .value { background:rgba(16,185,129,0.2); }
 .gain { background:rgba(34,197,94,0.25); }
+.eff { background:rgba(168,85,247,0.25); }
 
 /* BONDS */
 .container { max-width:500px; margin:auto; padding:10px; }
+
 .bond {
   background:rgba(255,255,255,0.06);
   border-radius:15px;
   padding:15px;
   margin-bottom:12px;
   cursor:pointer;
+  transition:0.3s;
 }
+.bond:hover { transform:translateY(-2px); }
+
 .headerRow {
   font-weight:600;
   font-size:16px;
   margin-bottom:6px;
 }
-.details { max-height:0; overflow:hidden; transition:0.4s; }
-.bond.active .details { max-height:520px; }
 
-.row { display:flex; justify-content:space-between; margin:6px 0; font-size:14px; }
+.details { max-height:0; overflow:hidden; transition:0.4s; }
+.bond.active .details { max-height:750px; }
+
+.row {
+  display:flex;
+  justify-content:space-between;
+  margin:6px 0;
+  font-size:14px;
+}
+
 .label { color:#bbb; }
 .big { color:#4fd1c5; font-weight:bold; }
+
 .rate { font-size:12px; color:#9ae6b4; }
 .today { font-size:12px; color:#90cdf4; }
 
@@ -96,6 +113,7 @@ body {
     <div class="summary-item invested" id="sum-invested"></div>
     <div class="summary-item value" id="sum-value"></div>
     <div class="summary-item gain" id="sum-gain"></div>
+    <div class="summary-item eff" id="sum-eff"></div>
   </div>
 </div>
 
@@ -106,6 +124,10 @@ function toggle(el){ el.classList.toggle("active"); }
 
 function formatDate(d){
   return d.toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"});
+}
+
+function formatINR(num){
+  return num.toLocaleString("en-IN",{maximumFractionDigits:2});
 }
 
 function calcInterest(p,r,start){
@@ -120,11 +142,7 @@ function startOfToday(){
   return new Date(n.getFullYear(),n.getMonth(),n.getDate());
 }
 
-function formatINR(num){
-  return num.toLocaleString("en-IN",{maximumFractionDigits:2});
-}
-
-/* LOAD JSON */
+/* FETCH DATA */
 fetch("bonds.json?v=" + Date.now())
 .then(res=>res.json())
 .then(data=>{
@@ -141,9 +159,7 @@ fetch("bonds.json?v=" + Date.now())
     div.className="bond";
 
     div.innerHTML=`
-      <div class="headerRow">
-        Bond #${b.id}
-      </div>
+      <div class="headerRow">Bond #${b.id}</div>
 
       <div class="row">
         <div class="label">Principal</div>
@@ -170,6 +186,11 @@ fetch("bonds.json?v=" + Date.now())
           <div class="big" id="t${b.id}"></div>
         </div>
 
+        <div class="row">
+          <div class="label">Projected @ Maturity</div>
+          <div class="big" id="pm${b.id}"></div>
+        </div>
+
         <div class="maturity-box" id="m${b.id}"></div>
       </div>
     `;
@@ -192,6 +213,9 @@ fetch("bonds.json?v=" + Date.now())
       totalP+=b.p;
       totalV+=t;
 
+      const tenureYears=(b.mat-b.start)/(1000*60*60*24*365);
+      const projected=b.p+(b.p*b.r*tenureYears/100);
+
       const rateHr=perHour(b.p,b.r);
       const rateDay=perDay(b.p,b.r);
 
@@ -207,9 +231,18 @@ fetch("bonds.json?v=" + Date.now())
       document.getElementById(`rate${b.id}`).innerText=rateText;
       document.getElementById(`today${b.id}`).innerText=`Today: ₹ ${todayEarn.toFixed(2)}`;
       document.getElementById(`m${b.id}`).innerText=`Matures in: ${daysLeft} days`;
+      document.getElementById(`pm${b.id}`).innerText=`₹ ${formatINR(projected)}`;
     });
 
     const gain=totalV-totalP;
+
+    // Portfolio Effective Return
+    const firstStart=bonds[0].start;
+    const daysPassed=(Date.now()-firstStart)/(1000*60*60*24);
+
+    const portfolioEff = daysPassed>0
+      ? (gain/totalP)*(365/daysPassed)*100
+      : 0;
 
     document.getElementById("sum-invested").innerText=
       `Invested\n₹ ${formatINR(totalP)}`;
@@ -219,6 +252,9 @@ fetch("bonds.json?v=" + Date.now())
 
     document.getElementById("sum-gain").innerText=
       `Gains\n+₹ ${formatINR(gain)}`;
+
+    document.getElementById("sum-eff").innerText=
+      `Return (p.a)\n${portfolioEff.toFixed(2)}%`;
 
     requestAnimationFrame(animate);
   }
