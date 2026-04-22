@@ -56,7 +56,11 @@ body {
   margin-bottom:12px;
   cursor:pointer;
 }
-.headerRow { display:flex; justify-content:space-between; font-weight:600; }
+.headerRow {
+  font-weight:600;
+  font-size:16px;
+  margin-bottom:6px;
+}
 .details { max-height:0; overflow:hidden; transition:0.4s; }
 .bond.active .details { max-height:520px; }
 
@@ -121,12 +125,11 @@ function formatINR(num){
 }
 
 /* LOAD JSON */
-fetch(`bonds.json?v=${Date.now()}`)
+fetch("bonds.json?v=" + Date.now())
 .then(res=>res.json())
 .then(data=>{
 
   const container=document.getElementById("bondContainer");
-
   const bonds=[];
 
   data.forEach(b=>{
@@ -139,11 +142,16 @@ fetch(`bonds.json?v=${Date.now()}`)
 
     div.innerHTML=`
       <div class="headerRow">
-        <span>Bond #${b.id}</span>
-        <span>₹ ${formatINR(b.principal)}</span>
+        Bond #${b.id}
       </div>
-      <div class="details" id="bond${b.id}">
-        <div class="row"><div class="label">Coupon</div><div>${b.coupon}%</div></div>
+
+      <div class="row">
+        <div class="label">Principal</div>
+        <div class="big">₹ ${formatINR(b.principal)}</div>
+      </div>
+
+      <div class="details">
+        <div class="row"><div class="label">Coupon</div><div>${b.coupon}% p.a</div></div>
         <div class="row"><div class="label">Start</div><div>${formatDate(start)}</div></div>
         <div class="row"><div class="label">Maturity</div><div>${formatDate(mat)}</div></div>
         <div class="row"><div class="label">Liquidity</div><div>${b.liquidity}</div></div>
